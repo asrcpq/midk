@@ -32,11 +32,11 @@ fn main() {
 			for (&note, value) in note_on.iter_mut() {
 				let y = &mut value.1;
 				let vel = value.0;
-				*y += 440.0 * 2f32.powf((note as i32 - 69) as f32 / 12.0) * frame_t;
+				*y += 440.0 * 2f32.powf((note as i32 - 57) as f32 / 12.0) * frame_t;
 				if *y >= 1.0 { *y -= 2.0 }
 				let k = 3.0;
-				*v1 += *y as f32 * vel as f32 / 128.0 / k;
-				*v2 += *y as f32 * vel as f32 / 128.0 / k;
+				*v1 += (*y >= 0.0) as u32 as f32 * vel as f32 / 128.0 / k;
+				*v2 += (*y >= 0.0) as u32 as f32 * vel as f32 / 128.0 / k;
 			}
 		}
 		jack::Control::Continue
