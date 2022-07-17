@@ -30,15 +30,17 @@ fn main() {
 
 	let mut iter = std::env::args();
 	iter.next();
-	let cin = iter.next().unwrap();
-	let cout = iter.next().unwrap();
-	let ins = alias_table.get(&(cin, false)).unwrap();
-	let outs = alias_table.get(&(cout, true)).unwrap();
-	if ins.len() != outs.len() {
-		std::process::exit(1);
-	}
-	for (cin, cout) in ins.iter().zip(outs.iter()) {
-		eprintln!("{} -> {}", cin, cout);
-		client.connect_ports_by_name(cin, cout).unwrap();
+	let mut last_port = iter.next().unwrap();
+	while let Some(next_port) = iter.next() {
+		let ins = alias_table.get(&(last_port, false)).unwrap();
+		let outs = alias_table.get(&(next_port.clone(), true)).unwrap();
+		if ins.len() != outs.len() {
+			std::process::exit(1);
+		}
+		for (cin, cout) in ins.iter().zip(outs.iter()) {
+			eprintln!("{} -> {}", cin, cout);
+			client.connect_ports_by_name(cin, cout).unwrap();
+		}
+		last_port = next_port;
 	}
 }
