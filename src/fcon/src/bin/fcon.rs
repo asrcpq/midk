@@ -4,7 +4,7 @@ fn main() {
 	type Key = (String, bool);
 	let mut alias_table: HashMap<Key, Vec<String>> = Default::default();
 	let (client, _status) = jack::Client::new(
-		"midk_fzcon",
+		"midk_fcon",
 		jack::ClientOptions::NO_START_SERVER,
 	).unwrap();
 
