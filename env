@@ -1,0 +1,3 @@
+alias midk_fcon="cargo run --release --bin fcon --"
+alias midk_lsp="cargo run --release --bin lsp"
+alias midk_mididump="cargo run --release --bin mididump"
