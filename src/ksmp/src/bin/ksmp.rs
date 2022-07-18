@@ -14,7 +14,7 @@ fn main() {
 		"midk_ksmp",
 		jack::ClientOptions::NO_START_SERVER,
 	).unwrap();
-	// let sample_rate = client.sample_rate();
+	assert_eq!(client.sample_rate(), 48000);
 
 	let midi_in = client.register_port("midi_in", jack::MidiIn::default())
 		.unwrap();

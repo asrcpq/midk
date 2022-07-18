@@ -12,6 +12,8 @@ impl SampleDb {
 			let file = key["file"].as_str().unwrap();
 			eprintln!("Load sample: {}", file);
 			let mut reader = claxon::FlacReader::open(file).unwrap();
+			// force 48khz
+			assert_eq!(reader.streaminfo().sample_rate, 48000);
 			let mut sample = [Vec::new(), Vec::new()];
 			let mut frame_reader = reader.blocks();
 			let mut buffer = Vec::new();
