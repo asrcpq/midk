@@ -21,8 +21,8 @@ impl SampleDb {
 				} else {
 					[0, 0]
 				};
-				for channel in channels.into_iter() {
-					let block_sample: Vec<f32> = block.channel(channel as u32)
+				for channel in 0..2 {
+					let block_sample: Vec<f32> = block.channel(channels[channel])
 						.iter()
 						.map(|x| -x as f32 / i32::MIN as f32)
 						.collect();

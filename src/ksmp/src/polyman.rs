@@ -21,6 +21,7 @@ impl Polyman {
 		let mut buffers: Buffers = Vec::new();
 		for key in db.keys.into_iter() {
 			let note = key.note;
+			eprintln!("{}", key.buffer[1].len());
 			let vbuf = (
 				key.velocity,
 				Arc::new(key.buffer),
