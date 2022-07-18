@@ -13,6 +13,10 @@ pub struct Polyman {
 }
 
 impl Polyman {
+	pub fn active_keys(&self) -> usize {
+		self.playkeys.len()
+	}
+
 	pub fn new(db: SampleDb) -> Self {
 		let mut buffers: Buffers = Vec::new();
 		for key in db.keys.into_iter() {

@@ -1,3 +1,5 @@
+use std::sync::mpsc::channel;
+
 use ksmp::sample_db::SampleDb;
 use ksmp::polyman::Polyman;
 
@@ -20,6 +22,7 @@ fn main() {
 		.unwrap();
 	let mut audio_out2 = client.register_port("audio_out2", jack::AudioOut::default())
 		.unwrap();
+	let (tx, rx) = channel();
 
 	let callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
 		let mut events: Vec<_> = midi_in.iter(ps).collect();
@@ -42,15 +45,23 @@ fn main() {
 			}
 
 			[*s1, *s2] = polyman.get_sample();
+			tx.send(polyman.active_keys()).unwrap();
 			polyman.step();
 		}
 		jack::Control::Continue
 	};
 
-	let active_client = client
+	let _active_client = client
 		.activate_async((), jack::ClosureProcessHandler::new(callback))
 		.unwrap();
-	let mut line = String::new();
-	std::io::stdin().read_line(&mut line).unwrap();
-	active_client.deactivate().unwrap();
+	let mut msg_counter = 0u32;
+	loop {
+		let len = rx.recv().unwrap();
+		if msg_counter > 100000 {
+			eprintln!("Active keys: {}", len);
+			msg_counter = 0;
+		}
+		msg_counter += 1;
+	}
+	// active_client.deactivate().unwrap();
 }
