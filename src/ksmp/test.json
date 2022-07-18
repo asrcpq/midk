@@ -1,7 +1,9 @@
-[
-	{
-		"file": "/tmp/test.flac",
-		"note": 69,
-		"velocity": 100
-	}
-]
+{
+	"keys": [
+		{
+			"file": "/tmp/test.flac",
+			"note": 69,
+			"velocity": 100
+		}
+	]
+}
