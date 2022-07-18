@@ -10,6 +10,7 @@ type Buffers = Vec<(u8, Vec<VelocityBuffer>)>;
 pub struct Polyman {
 	playkeys: HashMap<u8, Playkey>,
 	buffers: Buffers,
+	volume: f32,
 }
 
 impl Polyman {
@@ -37,6 +38,7 @@ impl Polyman {
 		Self {
 			playkeys: HashMap::new(),
 			buffers,
+			volume: 100f32,
 		}
 	}
 
@@ -54,7 +56,7 @@ impl Polyman {
 				if let Some(release) = playkey.release {
 					s2 *= release;
 				}
-				result[channel] += s2;
+				result[channel] += s2 * self.volume;
 			}
 		}
 		result
@@ -97,10 +99,12 @@ impl Polyman {
 				&vbufs[idx - 1].1
 			}
 		};
+		let step = 2f32.powf((note as f32 - *sample_note as f32) / 12.0);
+		eprintln!("{}", step);
 		let playkey = Playkey {
 			buffer: buffer.clone(),
 			sample_offset: 0.0,
-			step: 2f32.powf((note as f32 - *sample_note as f32) / 12.0),
+			step,
 			release: None,
 		};
 		self.playkeys.insert(note, playkey);
