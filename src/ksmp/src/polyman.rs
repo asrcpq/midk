@@ -86,7 +86,9 @@ impl Polyman {
 		} else {
 			if let Some(notes) = self.sustain.take() {
 				for note in notes.into_iter() {
-					self.keyup(note);
+					if !self.playkeys.contains_key(&note) {
+						self.keyup(note);
+					}
 				}
 			} else {
 				eprintln!("ERROR: sustain off, but never on!");
