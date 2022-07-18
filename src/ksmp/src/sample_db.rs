@@ -8,7 +8,7 @@ impl SampleDb {
 	pub fn load_config(config_str: &str) -> Self {
 		let json: serde_json::Value = serde_json::from_str(config_str).unwrap();
 		let mut keys = Vec::new();
-		for key in json.as_array().unwrap().iter() {
+		for key in json["keys"].as_array().unwrap().iter() {
 			let file = key["file"].as_str().unwrap();
 			eprintln!("Load sample: {}", file);
 			let mut reader = claxon::FlacReader::open(file).unwrap();
