@@ -1,0 +1,9 @@
+[package]
+name = "ksmp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jack = "0.10"
+serde_json = "1"
+claxon = "0.4"
