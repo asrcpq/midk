@@ -10,6 +10,7 @@ type Buffers = Vec<(u8, Vec<VelocityBuffer>)>;
 pub struct Polyman {
 	playkeys: HashMap<u8, Playkey>,
 	buffers: Buffers,
+	release: f32,
 	volume: f32,
 	sustain: Option<Vec<u8>>,
 }
@@ -39,6 +40,7 @@ impl Polyman {
 		Self {
 			playkeys: HashMap::new(),
 			buffers,
+			release: 1f32 / (db.release * 48000.0),
 			volume: 70f32,
 			sustain: None,
 		}
@@ -71,7 +73,7 @@ impl Polyman {
 				continue
 			}
 			if let Some(ref mut release) = playkey.release {
-				*release -= 0.01;
+				*release -= self.release;
 				if *release <= 0.0 {
 					continue
 				}
@@ -86,9 +88,7 @@ impl Polyman {
 		} else {
 			if let Some(notes) = self.sustain.take() {
 				for note in notes.into_iter() {
-					if !self.playkeys.contains_key(&note) {
-						self.keyup(note);
-					}
+					self.keyup(note);
 				}
 			} else {
 				eprintln!("ERROR: sustain off, but never on!");
@@ -97,6 +97,9 @@ impl Polyman {
 	}
 
 	pub fn keydown(&mut self, note: u8, velocity: u8) {
+		if let Some(ref mut notes) = self.sustain {
+			notes.retain(|&x| x != note);
+		}
 		let (sample_note, vbufs) = match self.buffers
 			.iter()
 			.enumerate()
@@ -135,6 +138,8 @@ impl Polyman {
 		}
 		if let Some(mut playkey) = self.playkeys.get_mut(&note) {
 			playkey.release = Some(1.0);
+		} else {
+			eprintln!("key up, but not found in playkeys");
 		}
 	}
 }
