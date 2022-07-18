@@ -1,6 +1,7 @@
 use crate::AudioBuffer;
 
 pub struct SampleDb {
+	pub release: f32,
 	pub keys: Vec<Key>,
 }
 
@@ -8,6 +9,7 @@ impl SampleDb {
 	pub fn load_config(config_str: &str) -> Self {
 		let json: serde_json::Value = serde_json::from_str(config_str).unwrap();
 		let mut keys = Vec::new();
+		let release = json["release"].as_f64().unwrap_or(0.02) as f32;
 		for key in json["keys"].as_array().unwrap().iter() {
 			let file = key["file"].as_str().unwrap();
 			eprintln!("Load sample: {}", file);
@@ -40,7 +42,7 @@ impl SampleDb {
 				velocity
 			});
 		}
-		Self { keys }
+		Self { release, keys }
 	}
 }
 
