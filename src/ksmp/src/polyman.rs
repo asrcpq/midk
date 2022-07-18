@@ -11,6 +11,7 @@ pub struct Polyman {
 	playkeys: HashMap<u8, Playkey>,
 	buffers: Buffers,
 	volume: f32,
+	sustain: Option<Vec<u8>>,
 }
 
 impl Polyman {
@@ -38,7 +39,8 @@ impl Polyman {
 		Self {
 			playkeys: HashMap::new(),
 			buffers,
-			volume: 100f32,
+			volume: 70f32,
+			sustain: None,
 		}
 	}
 
@@ -78,6 +80,20 @@ impl Polyman {
 		}
 	}
 
+	pub fn sustain(&mut self, on: bool) {
+		if on {
+			self.sustain = Some(Vec::new());
+		} else {
+			if let Some(notes) = self.sustain.take() {
+				for note in notes.into_iter() {
+					self.keyup(note);
+				}
+			} else {
+				eprintln!("ERROR: sustain off, but never on!");
+			}
+		}
+	}
+
 	pub fn keydown(&mut self, note: u8, velocity: u8) {
 		let (sample_note, vbufs) = match self.buffers
 			.iter()
@@ -100,7 +116,6 @@ impl Polyman {
 			}
 		};
 		let step = 2f32.powf((note as f32 - *sample_note as f32) / 12.0);
-		eprintln!("{}", step);
 		let playkey = Playkey {
 			buffer: buffer.clone(),
 			sample_offset: 0.0,
@@ -111,6 +126,11 @@ impl Polyman {
 	}
 
 	pub fn keyup(&mut self, note: u8) {
+		if let Some(ref mut notes) = self.sustain {
+			notes.push(note);
+			// TODO: key pressed again?
+			return
+		}
 		if let Some(mut playkey) = self.playkeys.get_mut(&note) {
 			playkey.release = Some(1.0);
 		}

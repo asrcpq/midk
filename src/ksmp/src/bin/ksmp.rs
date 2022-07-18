@@ -40,6 +40,12 @@ fn main() {
 					polyman.keydown(event.bytes[1], event.bytes[2]);
 				} else if event.bytes[0] == 138 {
 					polyman.keyup(event.bytes[1]);
+				} else if event.bytes[0] == 186 && event.bytes[1] == 64 {
+					if event.bytes[2] == 0 {
+						polyman.sustain(false);
+					} else if event.bytes[2] == 127 {
+						polyman.sustain(true);
+					}
 				}
 				event_idx += 1;
 			}
