@@ -21,7 +21,6 @@ impl Polyman {
 		let mut buffers: Buffers = Vec::new();
 		for key in db.keys.into_iter() {
 			let note = key.note;
-			eprintln!("{}", key.buffer[1].len());
 			let vbuf = (
 				key.velocity,
 				Arc::new(key.buffer),
@@ -46,8 +45,10 @@ impl Polyman {
 		for (_, playkey) in self.playkeys.iter() {
 			let offset0 = playkey.sample_offset as usize;
 			for channel in 0..2 {
-				let s0 = playkey.buffer[channel][offset0];
-				let s1 = playkey.buffer[channel][offset0 + 1];
+				let buf = &playkey.buffer[channel];
+				if offset0 >= buf.len() - 1 { break }
+				let s0 = buf[offset0];
+				let s1 = buf[offset0 + 1];
 				let f = playkey.sample_offset.fract();
 				let mut s2 = f * (s1 - s0) + s0;
 				if let Some(release) = playkey.release {
@@ -56,19 +57,18 @@ impl Polyman {
 				result[channel] += s2;
 			}
 		}
-		[0.0; 2]
+		result
 	}
 
 	pub fn step(&mut self) {
 		for (key, mut playkey) in std::mem::take(&mut self.playkeys).into_iter() {
 			playkey.sample_offset += playkey.step;
-			if (playkey.buffer.len() as f32) < playkey.sample_offset {
+			if (playkey.buffer[0].len() as f32) < playkey.sample_offset {
 				continue
 			}
-			if let Some(mut release) = playkey.release {
-				// TODO: remove magic number
-				release -= 0.01;
-				if release <= 0.0 {
+			if let Some(ref mut release) = playkey.release {
+				*release -= 0.01;
+				if *release <= 0.0 {
 					continue
 				}
 			}
