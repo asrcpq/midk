@@ -6,4 +6,5 @@ members = [
 	"src/toysynth",
 	"src/ksmp",
 	"src/audiorec",
+	"src/smprec",
 ]
