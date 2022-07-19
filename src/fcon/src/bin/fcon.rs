@@ -39,8 +39,13 @@ fn main() {
 			std::process::exit(1);
 		}
 		for (cin, cout) in ins.iter().zip(outs.iter()) {
-			eprintln!("{} -> {}", cin, cout);
-			client.connect_ports_by_name(cin, cout).unwrap();
+			match client.connect_ports_by_name(cin, cout) {
+				Ok(_) => eprintln!("Ok {} -> {}", cin, cout),
+				Err(jack::Error::PortAlreadyConnected(a, b)) => {
+					eprintln!("Connected {} -> {}", a, b);
+				},
+				Err(e) => panic!("{}", e),
+			}
 		}
 		last_port = next_port;
 	}
