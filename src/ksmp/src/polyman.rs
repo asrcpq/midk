@@ -96,9 +96,13 @@ impl Polyman {
 	}
 
 	pub fn keydown(&mut self, note: u8, velocity: u8) {
+		// a key pressed cannot be under sustained state
 		if let Some(ref mut notes) = self.sustain {
 			notes.retain(|&x| x != note);
 		}
+
+		// for note(pitch shifting), we always use lower note
+		// since use higher note(shift down) will cause high freq part loss
 		let (sample_note, vbufs) =
 			match self.buffers.iter().enumerate().find(|(_, x)| x.0 > note) {
 				None => self.buffers.last().unwrap(),
@@ -110,19 +114,31 @@ impl Polyman {
 					}
 				}
 			};
-		let (sample_velocity, buffer) =
-			match vbufs.iter().enumerate().find(|(_, x)| x.0 > velocity) {
-				None => &vbufs.last().unwrap(),
-				Some((idx, _)) => {
-					if idx == 0 {
-						&vbufs[0]
+		// for velocity, we simply use nearest sample(volume not changed)
+		let idx = match vbufs.iter().enumerate().find(|(_, x)| x.0 > velocity) {
+			None => vbufs.len() - 1,
+			Some((idx, _)) => {
+				if idx == 0 {
+					0
+				} else {
+					if vbufs[idx].0.abs_diff(velocity) < vbufs[idx - 1].0.abs_diff(velocity) {
+						idx
 					} else {
-						&vbufs[idx - 1]
+						idx - 1
 					}
 				}
-			};
+			}
+		};
+		let (sample_velocity, buffer) = &vbufs[idx];
+
 		let step = 2f32.powf((note as f32 - *sample_note as f32) / 12.0);
-		eprintln!("note: {} vel: {} step: {}", sample_note, sample_velocity, step);
+		eprintln!("note: {}>{} vel: {}>{} step: {}",
+			note,
+			sample_note,
+			velocity,
+			sample_velocity,
+			step,
+		);
 		let playkey = Playkey {
 			buffer: buffer.clone(),
 			sample_offset: 0.0,
