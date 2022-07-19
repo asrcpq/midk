@@ -31,8 +31,10 @@ fn main() {
 	iter.next();
 	let mut last_port = iter.next().unwrap();
 	for next_port in iter {
-		let ins = alias_table.get(&(last_port, false)).unwrap();
-		let outs = alias_table.get(&(next_port.clone(), true)).unwrap();
+		let ins = alias_table.get(&(last_port.clone(), false))
+			.expect(&format!("{} not found", last_port));
+		let outs = alias_table.get(&(next_port.clone(), true))
+			.expect(&format!("{} not found", next_port));
 		if ins.len() != outs.len() {
 			std::process::exit(1);
 		}

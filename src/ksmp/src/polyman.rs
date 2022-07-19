@@ -110,18 +110,19 @@ impl Polyman {
 					}
 				}
 			};
-		let buffer =
+		let (sample_velocity, buffer) =
 			match vbufs.iter().enumerate().find(|(_, x)| x.0 > velocity) {
-				None => &vbufs.last().unwrap().1,
+				None => &vbufs.last().unwrap(),
 				Some((idx, _)) => {
 					if idx == 0 {
-						&vbufs[0].1
+						&vbufs[0]
 					} else {
-						&vbufs[idx - 1].1
+						&vbufs[idx - 1]
 					}
 				}
 			};
 		let step = 2f32.powf((note as f32 - *sample_note as f32) / 12.0);
+		eprintln!("note: {} vel: {} step: {}", sample_note, sample_velocity, step);
 		let playkey = Playkey {
 			buffer: buffer.clone(),
 			sample_offset: 0.0,
