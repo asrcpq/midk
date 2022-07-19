@@ -58,6 +58,7 @@ fn main() {
 	let note_table = [24, 36, 48, 60, 72, 84, 96];
 	let velocity_table = [20, 50, 80, 110];
 	let mut low_counter = 0;
+	let mut sample_count = 0;
 	let mut nid = 0;
 	let mut vid = 0;
 	let (tx, rx) = channel();
@@ -88,6 +89,7 @@ fn main() {
 					if s1.abs() > trigger || s2.abs() > trigger {
 						eprintln!("start recording {} {}", note, velocity);
 						trigger_flag = true;
+						sample_count = 0;
 					} else {
 						continue;
 					}
@@ -96,7 +98,7 @@ fn main() {
 					low_counter += 1;
 					if low_counter > 24000 {
 						low_counter = 0;
-						eprintln!("finished");
+						eprintln!("finished {}", sample_count as f32 / sample_rate as f32);
 						vid += 1;
 						if vid == velocity_table.len() {
 							nid += 1;
@@ -120,6 +122,7 @@ fn main() {
 				}
 				wav_writer.write_sample(s1).unwrap();
 				wav_writer.write_sample(s2).unwrap();
+				sample_count += 1;
 			}
 			jack::Control::Continue
 		};
