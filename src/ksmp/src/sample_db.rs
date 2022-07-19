@@ -26,7 +26,8 @@ impl SampleDb {
 					[0, 0]
 				};
 				for channel in 0..2 {
-					let block_sample: Vec<f32> = block.channel(channels[channel])
+					let block_sample: Vec<f32> = block
+						.channel(channels[channel])
 						.iter()
 						.map(|x| -x as f32 / i32::MIN as f32)
 						.collect();
@@ -39,7 +40,7 @@ impl SampleDb {
 			keys.push(Key {
 				buffer: sample,
 				note,
-				velocity
+				velocity,
 			});
 		}
 		Self { release, keys }

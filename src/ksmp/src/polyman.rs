@@ -24,10 +24,7 @@ impl Polyman {
 		let mut buffers: Buffers = Vec::new();
 		for key in db.keys.into_iter() {
 			let note = key.note;
-			let vbuf = (
-				key.velocity,
-				Arc::new(key.buffer),
-			);
+			let vbuf = (key.velocity, Arc::new(key.buffer));
 			match buffers.iter_mut().find(|x| x.0 == note) {
 				None => buffers.push((note, vec![vbuf])),
 				Some(x) => x.1.push(vbuf),
@@ -50,9 +47,12 @@ impl Polyman {
 		let mut result = [0.0; 2];
 		for (_, playkey) in self.playkeys.iter() {
 			let offset0 = playkey.sample_offset as usize;
+			#[allow(clippy::needless_range_loop)]
 			for channel in 0..2 {
 				let buf = &playkey.buffer[channel];
-				if offset0 >= buf.len() - 1 { break }
+				if offset0 >= buf.len() - 1 {
+					break;
+				}
 				let s0 = buf[offset0];
 				let s1 = buf[offset0 + 1];
 				let f = playkey.sample_offset.fract();
@@ -67,15 +67,16 @@ impl Polyman {
 	}
 
 	pub fn step(&mut self) {
-		for (key, mut playkey) in std::mem::take(&mut self.playkeys).into_iter() {
+		for (key, mut playkey) in std::mem::take(&mut self.playkeys).into_iter()
+		{
 			playkey.sample_offset += playkey.step;
 			if (playkey.buffer[0].len() as f32) < playkey.sample_offset {
-				continue
+				continue;
 			}
 			if let Some(ref mut release) = playkey.release {
 				*release -= self.release;
 				if *release <= 0.0 {
-					continue
+					continue;
 				}
 			}
 			self.playkeys.insert(key, playkey);
@@ -85,14 +86,12 @@ impl Polyman {
 	pub fn sustain(&mut self, on: bool) {
 		if on {
 			self.sustain = Some(Vec::new());
-		} else {
-			if let Some(notes) = self.sustain.take() {
-				for note in notes.into_iter() {
-					self.keyup(note);
-				}
-			} else {
-				eprintln!("ERROR: sustain off, but never on!");
+		} else if let Some(notes) = self.sustain.take() {
+			for note in notes.into_iter() {
+				self.keyup(note);
 			}
+		} else {
+			eprintln!("ERROR: sustain off, but never on!");
 		}
 	}
 
@@ -100,26 +99,28 @@ impl Polyman {
 		if let Some(ref mut notes) = self.sustain {
 			notes.retain(|&x| x != note);
 		}
-		let (sample_note, vbufs) = match self.buffers
-			.iter()
-			.enumerate()
-			.find(|(_, x)| x.0 > note)
-		{
-			None => &self.buffers.last().unwrap(),
-			Some((idx, _)) => if idx == 0 {
-				&self.buffers[0]
-			} else {
-				&self.buffers[idx - 1]
-			},
-		};
-		let buffer = match vbufs.iter().enumerate().find(|(_, x)| x.0 > velocity) {
-			None => &vbufs.last().unwrap().1,
-			Some((idx, _)) => if idx == 0 {
-				&vbufs[0].1
-			} else {
-				&vbufs[idx - 1].1
-			}
-		};
+		let (sample_note, vbufs) =
+			match self.buffers.iter().enumerate().find(|(_, x)| x.0 > note) {
+				None => self.buffers.last().unwrap(),
+				Some((idx, _)) => {
+					if idx == 0 {
+						&self.buffers[0]
+					} else {
+						&self.buffers[idx - 1]
+					}
+				}
+			};
+		let buffer =
+			match vbufs.iter().enumerate().find(|(_, x)| x.0 > velocity) {
+				None => &vbufs.last().unwrap().1,
+				Some((idx, _)) => {
+					if idx == 0 {
+						&vbufs[0].1
+					} else {
+						&vbufs[idx - 1].1
+					}
+				}
+			};
 		let step = 2f32.powf((note as f32 - *sample_note as f32) / 12.0);
 		let playkey = Playkey {
 			buffer: buffer.clone(),
@@ -134,7 +135,7 @@ impl Polyman {
 		if let Some(ref mut notes) = self.sustain {
 			notes.push(note);
 			// TODO: key pressed again?
-			return
+			return;
 		}
 		if let Some(mut playkey) = self.playkeys.get_mut(&note) {
 			playkey.release = Some(1.0);
