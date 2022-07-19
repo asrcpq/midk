@@ -120,24 +120,21 @@ impl Polyman {
 			Some((idx, _)) => {
 				if idx == 0 {
 					0
+				} else if vbufs[idx].0.abs_diff(velocity)
+					< vbufs[idx - 1].0.abs_diff(velocity)
+				{
+					idx
 				} else {
-					if vbufs[idx].0.abs_diff(velocity) < vbufs[idx - 1].0.abs_diff(velocity) {
-						idx
-					} else {
-						idx - 1
-					}
+					idx - 1
 				}
 			}
 		};
 		let (sample_velocity, buffer) = &vbufs[idx];
 
 		let step = 2f32.powf((note as f32 - *sample_note as f32) / 12.0);
-		eprintln!("note: {}>{} vel: {}>{} step: {}",
-			note,
-			sample_note,
-			velocity,
-			sample_velocity,
-			step,
+		eprintln!(
+			"note: {}>{} vel: {}>{} step: {}",
+			note, sample_note, velocity, sample_velocity, step,
 		);
 		let playkey = Playkey {
 			buffer: buffer.clone(),
