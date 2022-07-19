@@ -14,7 +14,9 @@
 
 ## sampler
 
-* ksmp: simple polyphonic sampler
+* ksmp: simple polyphonic sample player
+
+* smprec: instrument sample autorecorder
 
 ## synth
 
@@ -23,7 +25,5 @@
 ## todo
 
 * fdiscon
-
-* smprec
 
 * automidirec
