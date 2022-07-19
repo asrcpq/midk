@@ -38,7 +38,7 @@ impl Polyman {
 			playkeys: HashMap::new(),
 			buffers,
 			release: 1f32 / (db.release * 48000.0),
-			volume: 70f32,
+			volume: 1f32,
 			sustain: None,
 		}
 	}

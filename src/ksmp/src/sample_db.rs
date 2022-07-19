@@ -10,38 +10,42 @@ impl SampleDb {
 		let json: serde_json::Value = serde_json::from_str(config_str).unwrap();
 		let mut keys = Vec::new();
 		let release = json["release"].as_f64().unwrap_or(0.02) as f32;
-		for key in json["keys"].as_array().unwrap().iter() {
-			let file = key["file"].as_str().unwrap();
-			eprintln!("Load sample: {}", file);
-			let mut reader = claxon::FlacReader::open(file).unwrap();
-			// force 48khz
-			assert_eq!(reader.streaminfo().sample_rate, 48000);
-			let mut sample = [Vec::new(), Vec::new()];
-			let mut frame_reader = reader.blocks();
-			let mut buffer = Vec::new();
-			while let Ok(Some(block)) = frame_reader.read_next_or_eof(buffer) {
-				let channels = if block.channels() == 2 {
-					[0, 1]
-				} else {
-					[0, 0]
-				};
-				for channel in 0..2 {
-					let block_sample: Vec<f32> = block
-						.channel(channels[channel])
-						.iter()
-						.map(|x| -x as f32 / i32::MIN as f32)
-						.collect();
-					sample[channel].extend(block_sample);
+		let sample_dir = json["sample_dir"].as_str().unwrap();
+		for entry in std::fs::read_dir(sample_dir).unwrap() {
+			let path = entry.unwrap().path();
+			let filename = path.file_name().unwrap();
+			let mut v_flag = false;
+			let mut note = 0;
+			let mut velocity = 0;
+			for ch in filename.to_str().unwrap().chars() {
+				if ch == 'v' {
+					v_flag = true;
+				} else if ch.is_digit(10) {
+					if v_flag {
+						velocity *= 10;
+						velocity += ch.to_digit(10).unwrap() as u8;
+					} else {
+						note *= 10;
+						note += ch.to_digit(10).unwrap() as u8;
+					}
+				} else if ch != 'n' {
+					break
 				}
-				buffer = block.into_buffer();
 			}
-			let note = key["note"].as_i64().unwrap() as u8;
-			let velocity = key["velocity"].as_i64().unwrap() as u8;
+			let mut reader = hound::WavReader::open(path).unwrap();
+			let mut sample = [Vec::new(), Vec::new()];
+			let mut channel = 0;
+			for s in reader.samples::<f32>() {
+				sample[channel].push(s.unwrap());
+				channel += 1;
+				channel %= 2;
+			}
 			keys.push(Key {
 				buffer: sample,
 				note,
 				velocity,
 			});
+			eprintln!("loaded n{}v{}", note, velocity);
 		}
 		Self { release, keys }
 	}

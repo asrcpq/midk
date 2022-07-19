@@ -6,4 +6,4 @@ edition = "2021"
 [dependencies]
 jack = "0.10"
 serde_json = "1"
-claxon = "0.4"
+hound = "3"
