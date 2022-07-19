@@ -1,25 +1,4 @@
 {
-	"release": 0.02,
-	"keys": [
-		{
-			"file": "/tmp/midk_ksmp/a1_100.flac",
-			"note": 33,
-			"velocity": 100
-		},
-		{
-			"file": "/tmp/midk_ksmp/a1_50.flac",
-			"note": 33,
-			"velocity": 50
-		},
-		{
-			"file": "/tmp/midk_ksmp/a3_100.flac",
-			"note": 57,
-			"velocity": 100
-		},
-		{
-			"file": "/tmp/midk_ksmp/a3_50.flac",
-			"note": 57,
-			"velocity": 50
-		}
-	]
+	"release": 0.03,
+	"sample_dir": "/tmp/midk_smprec"
 }

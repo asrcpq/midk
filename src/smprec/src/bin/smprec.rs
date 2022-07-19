@@ -34,29 +34,28 @@ fn main() {
 		hound::WavWriter::create(format!("{}/tmp.wav", output_dir), spec)
 			.unwrap();
 
-	let trigger = 3e-4;
+	let trigger = 5e-4;
 	let mut trigger_flag = false;
 	let mut sender_flag = true;
-	// let note_table = [
-	// 	21,
-	// 	24, 28, 33,
-	// 	36, 40, 45,
-	// 	48, 52, 57,
-	// 	60, 64, 69,
-	// 	72, 76, 81,
-	// 	84, 88, 93,
-	// 	96, 100, 105,
-	// 	108,
-	// ];
-	// let velocity_table = [
-	// 	10, 20, 30,
-	// 	40, 50, 60,
-	// 	70, 75, 80, 85,
-	// 	90, 95, 100, 105,
-	// 	110, 120,
-	// ];
-	let note_table = [24, 36, 48, 60, 72, 84, 96];
-	let velocity_table = [20, 50, 80, 110];
+	let note_table = [
+		24, 28, 33,
+		36, 40, 45,
+		48, 52, 57,
+		60, 64, 69,
+		72, 76, 81,
+		84, 88, 93,
+		96, 100, 105,
+		108,
+	];
+	let velocity_table = [
+		10, 20, 30,
+		40, 50, 60,
+		70, 75, 80, 85,
+		90, 95, 100, 105,
+		110, 120,
+	];
+	// let note_table = [24, 36, 48, 60, 72, 84, 96];
+	// let velocity_table = [20, 50, 80, 110];
 	let mut low_counter = 0;
 	let mut sample_count = 0;
 	let mut nid = 0;

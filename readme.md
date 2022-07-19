@@ -28,10 +28,6 @@
 
 configuration
 
-### ksmp
-
-use easy nv file format
-
 ### new tools
 
 * fdiscon
