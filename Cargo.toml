@@ -5,4 +5,5 @@ members = [
 	"src/fcon",
 	"src/toysynth",
 	"src/ksmp",
+	"src/audiorec",
 ]
