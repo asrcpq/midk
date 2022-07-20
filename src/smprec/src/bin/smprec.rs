@@ -55,7 +55,7 @@ fn main() {
 		hound::WavWriter::create(format!("{}/tmp.wav", output_dir), spec)
 			.unwrap();
 
-	let trigger = 5e-4;
+	let trigger = 1e-4;
 	let mut trigger_flag = false;
 	let mut sender_flag = true;
 	let mut low_counter = 0;
