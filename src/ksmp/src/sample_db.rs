@@ -40,6 +40,12 @@ impl SampleDb {
 				channel += 1;
 				channel %= 2;
 			}
+			let len0 = sample[0].len();
+			let len1 = sample[1].len();
+			if len0 < 1000 || len1 < 1000 || len0 != len1 {
+				eprintln!("bad sample, skipped");
+				continue
+			}
 			keys.push(Key {
 				buffer: sample,
 				note,
