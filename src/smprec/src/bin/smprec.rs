@@ -6,7 +6,22 @@ fn main() {
 		.get("output_dir")
 		.map(|x| x[0].clone())
 		.unwrap_or_else(|| "/tmp/midk_smprec".to_string());
-	std::fs::create_dir(&output_dir).unwrap();
+	let notes: Vec<u8> = args
+		.get("notes")
+		.unwrap()
+		.into_iter()
+		.map(|x| x.parse::<u8>().unwrap())
+		.collect();
+	let velocities: Vec<u8> = args
+		.get("velocities")
+		.unwrap()
+		.into_iter()
+		.map(|x| x.parse::<u8>().unwrap())
+		.collect();
+	let delay = args
+		.get("delay")
+		.map(|x| x[0].parse::<f32>().unwrap());
+	let _ = std::fs::create_dir(&output_dir);
 	let (client, _status) =
 		jack::Client::new("midk_smprec", jack::ClientOptions::NO_START_SERVER)
 			.unwrap();
@@ -20,9 +35,15 @@ fn main() {
 	let mut midi_out = client
 		.register_port("midi_out", jack::MidiOut::default())
 		.unwrap();
-	let mut input = String::new();
-	eprintln!("Connect ports, then press ENTER to start recording");
-	std::io::stdin().read_line(&mut input).unwrap();
+	if let Some(delay) = delay {
+		eprintln!("Delay for port connection");
+		std::thread::sleep(std::time::Duration::from_secs_f32(delay));
+		eprintln!("Delay finished");
+	} else {
+		let mut input = String::new();
+		eprintln!("Connect ports, then press ENTER to start recording");
+		std::io::stdin().read_line(&mut input).unwrap();
+	}
 	let sample_rate = client.sample_rate();
 	let spec = hound::WavSpec {
 		channels: 2,
@@ -37,25 +58,6 @@ fn main() {
 	let trigger = 5e-4;
 	let mut trigger_flag = false;
 	let mut sender_flag = true;
-	let note_table = [
-		24, 28, 33,
-		36, 40, 45,
-		48, 52, 57,
-		60, 64, 69,
-		72, 76, 81,
-		84, 88, 93,
-		96, 100, 105,
-		108,
-	];
-	let velocity_table = [
-		10, 20, 30,
-		40, 50, 60,
-		70, 75, 80, 85,
-		90, 95, 100, 105,
-		110, 120,
-	];
-	// let note_table = [24, 36, 48, 60, 72, 84, 96];
-	// let velocity_table = [20, 50, 80, 110];
 	let mut low_counter = 0;
 	let mut sample_count = 0;
 	let mut nid = 0;
@@ -63,8 +65,8 @@ fn main() {
 	let (tx, rx) = channel();
 	let callback =
 		move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
-			let note = note_table[nid];
-			let velocity = velocity_table[vid];
+			let note = notes[nid];
+			let velocity = velocities[vid];
 			let mut writer = midi_out.writer(ps);
 			if sender_flag {
 				wav_writer = hound::WavWriter::create(format!(
@@ -73,6 +75,7 @@ fn main() {
 					note,
 					velocity,
 				), spec).unwrap();
+				eprintln!("send {} {}", note, velocity);
 				writer
 					.write(&jack::RawMidi {
 						time: 0,
@@ -99,9 +102,9 @@ fn main() {
 						low_counter = 0;
 						eprintln!("finished {}", sample_count as f32 / sample_rate as f32);
 						vid += 1;
-						if vid == velocity_table.len() {
+						if vid == velocities.len() {
 							nid += 1;
-							if nid == note_table.len() {
+							if nid == notes.len() {
 								tx.send(false).unwrap();
 								return jack::Control::Quit;
 							}
