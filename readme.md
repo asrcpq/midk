@@ -26,10 +26,14 @@
 
 ### smprec
 
-configuration
+* send timeout: resend
 
 ### new tools
 
 * fdiscon
 
 * automidirec
+
+* midicat
+
+* simple midi script
