@@ -1,6 +1,7 @@
 use crate::AudioBuffer;
 
 pub struct SampleDb {
+	pub attack: f32,
 	pub release: f32,
 	pub keys: Vec<Key>,
 }
@@ -10,6 +11,7 @@ impl SampleDb {
 		let json: serde_json::Value = serde_json::from_str(config_str).unwrap();
 		let mut keys = Vec::new();
 		let release = json["release"].as_f64().unwrap_or(0.02) as f32;
+		let attack = json["attack"].as_f64().unwrap_or(0.0) as f32;
 		let sample_dir = json["sample_dir"].as_str().unwrap();
 		for entry in std::fs::read_dir(sample_dir).unwrap() {
 			let path = entry.unwrap().path();
@@ -29,7 +31,7 @@ impl SampleDb {
 						note += ch.to_digit(10).unwrap() as u8;
 					}
 				} else if ch != 'n' {
-					break
+					break;
 				}
 			}
 			let mut reader = hound::WavReader::open(path).unwrap();
@@ -44,7 +46,7 @@ impl SampleDb {
 			let len1 = sample[1].len();
 			if len0 < 1000 || len1 < 1000 || len0 != len1 {
 				eprintln!("bad sample, skipped");
-				continue
+				continue;
 			}
 			keys.push(Key {
 				buffer: sample,
@@ -53,7 +55,7 @@ impl SampleDb {
 			});
 			eprintln!("loaded n{}v{}", note, velocity);
 		}
-		Self { release, keys }
+		Self { release, attack, keys }
 	}
 }
 

@@ -18,9 +18,7 @@ fn main() {
 		.into_iter()
 		.map(|x| x.parse::<u8>().unwrap())
 		.collect();
-	let delay = args
-		.get("delay")
-		.map(|x| x[0].parse::<f32>().unwrap());
+	let delay = args.get("delay").map(|x| x[0].parse::<f32>().unwrap());
 	let _ = std::fs::create_dir(&output_dir);
 	let (client, _status) =
 		jack::Client::new("midk_smprec", jack::ClientOptions::NO_START_SERVER)
@@ -69,12 +67,11 @@ fn main() {
 			let velocity = velocities[vid];
 			let mut writer = midi_out.writer(ps);
 			if sender_flag {
-				wav_writer = hound::WavWriter::create(format!(
-					"{}/n{}v{}.wav",
-					output_dir,
-					note,
-					velocity,
-				), spec).unwrap();
+				wav_writer = hound::WavWriter::create(
+					format!("{}/n{}v{}.wav", output_dir, note, velocity,),
+					spec,
+				)
+				.unwrap();
 				eprintln!("send {} {}", note, velocity);
 				writer
 					.write(&jack::RawMidi {
@@ -100,7 +97,10 @@ fn main() {
 					low_counter += 1;
 					if low_counter > 24000 {
 						low_counter = 0;
-						eprintln!("finished {}", sample_count as f32 / sample_rate as f32);
+						eprintln!(
+							"finished {}",
+							sample_count as f32 / sample_rate as f32
+						);
 						vid += 1;
 						if vid == velocities.len() {
 							nid += 1;
@@ -111,11 +111,12 @@ fn main() {
 							vid = 0;
 						}
 						eprintln!("{} {}", nid, vid);
-						writer.write(&jack::RawMidi {
-							time: 0,
-							bytes: &[138, note, velocity],
-						})
-						.unwrap();
+						writer
+							.write(&jack::RawMidi {
+								time: 0,
+								bytes: &[138, note, velocity],
+							})
+							.unwrap();
 						trigger_flag = false;
 						sender_flag = true;
 					}
