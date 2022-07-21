@@ -55,7 +55,11 @@ impl SampleDb {
 			});
 			eprintln!("loaded n{}v{}", note, velocity);
 		}
-		Self { release, attack, keys }
+		Self {
+			release,
+			attack,
+			keys,
+		}
 	}
 }
 
