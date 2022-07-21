@@ -62,8 +62,8 @@ impl Polyman {
 				match playkey.state {
 					Keystate::Release(release) => s2 *= release,
 					Keystate::Attack(attack) => s2 *= attack,
-					_ => {},
-				} 
+					_ => {}
+				}
 				result[channel] += s2 * self.volume;
 			}
 		}
@@ -90,8 +90,8 @@ impl Polyman {
 						playkey.state = Keystate::Sustain;
 					}
 				}
-				_ => {},
-			} 
+				_ => {}
+			}
 			self.playkeys.insert(key, playkey);
 		}
 	}

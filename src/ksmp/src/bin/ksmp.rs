@@ -25,7 +25,6 @@ fn main() {
 	let sample_db = SampleDb::load_config(&config);
 	let mut polyman = Polyman::new(sample_db);
 	let (tx, rx) = channel();
-	eprintln!("hello");
 
 	let callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
 		let mut events: Vec<_> = midi_in.iter(ps).collect();
