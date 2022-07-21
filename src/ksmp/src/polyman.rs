@@ -11,6 +11,7 @@ pub struct Polyman {
 	playkeys: HashMap<u8, Playkey>,
 	buffers: Buffers,
 	release: f32,
+	attack: f32,
 	volume: f32,
 	sustain: Option<Vec<u8>>,
 }
@@ -38,6 +39,7 @@ impl Polyman {
 			playkeys: HashMap::new(),
 			buffers,
 			release: 1f32 / (db.release * 48000.0),
+			attack: 1f32 / (db.attack * 48000.0),
 			volume: 1f32,
 			sustain: None,
 		}
@@ -57,9 +59,11 @@ impl Polyman {
 				let s1 = buf[offset0 + 1];
 				let f = playkey.sample_offset.fract();
 				let mut s2 = f * (s1 - s0) + s0;
-				if let Some(release) = playkey.release {
-					s2 *= release;
-				}
+				match playkey.state {
+					Keystate::Release(release) => s2 *= release,
+					Keystate::Attack(attack) => s2 *= attack,
+					_ => {},
+				} 
 				result[channel] += s2 * self.volume;
 			}
 		}
@@ -73,12 +77,21 @@ impl Polyman {
 			if (playkey.buffer[0].len() as f32) < playkey.sample_offset {
 				continue;
 			}
-			if let Some(ref mut release) = playkey.release {
-				*release -= self.release;
-				if *release <= 0.0 {
-					continue;
+			match playkey.state {
+				Keystate::Release(ref mut release) => {
+					*release -= self.release;
+					if *release <= 0.0 {
+						continue;
+					}
 				}
-			}
+				Keystate::Attack(ref mut attack) => {
+					*attack += self.attack;
+					if *attack >= 1.0 {
+						playkey.state = Keystate::Sustain;
+					}
+				}
+				_ => {},
+			} 
 			self.playkeys.insert(key, playkey);
 		}
 	}
@@ -140,7 +153,7 @@ impl Polyman {
 			buffer: buffer.clone(),
 			sample_offset: 0.0,
 			step,
-			release: None,
+			state: Keystate::Attack(0.0),
 		};
 		self.playkeys.insert(note, playkey);
 	}
@@ -148,11 +161,11 @@ impl Polyman {
 	pub fn keyup(&mut self, note: u8) {
 		if let Some(ref mut notes) = self.sustain {
 			notes.push(note);
-			// TODO: key pressed again?
 			return;
 		}
 		if let Some(mut playkey) = self.playkeys.get_mut(&note) {
-			playkey.release = Some(1.0);
+			// TODO: still in attack?
+			playkey.state = Keystate::Release(1.0);
 		} else {
 			eprintln!("key up, but not found in playkeys");
 		}
@@ -165,5 +178,11 @@ struct Playkey {
 	sample_offset: f32,
 	// delta time applied to sample_offset for each frame
 	step: f32,
-	release: Option<f32>,
+	state: Keystate,
+}
+
+enum Keystate {
+	Attack(f32),
+	Release(f32),
+	Sustain,
 }
