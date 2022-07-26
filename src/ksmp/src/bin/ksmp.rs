@@ -26,7 +26,9 @@ fn main() {
 	let mut polyman = Polyman::new(sample_db);
 	let (tx, rx) = channel();
 
-	let callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
+	let callback = move |_: &jack::Client,
+	                     ps: &jack::ProcessScope|
+	      -> jack::Control {
 		let mut events: Vec<_> = midi_in.iter(ps).collect();
 		events.sort_unstable_by_key(|x| x.time);
 		let out1 = audio_out1.as_mut_slice(ps);

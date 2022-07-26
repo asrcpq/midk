@@ -7,4 +7,5 @@ members = [
 	"src/ksmp",
 	"src/audiorec",
 	"src/smprec",
+	"src/midinput",
 ]
