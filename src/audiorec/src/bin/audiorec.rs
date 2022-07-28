@@ -1,5 +1,5 @@
 fn main() {
-	let args = aarg::parse();
+	let args = aarg::parse().unwrap();
 	let trigger = args
 		.get("trigger")
 		.map(|x| x[0].parse::<f32>().unwrap())

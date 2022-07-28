@@ -1,7 +1,7 @@
 use std::sync::mpsc::channel;
 
 fn main() {
-	let args = aarg::parse();
+	let args = aarg::parse().unwrap();
 	let output_dir = args
 		.get("output_dir")
 		.map(|x| x[0].clone())
