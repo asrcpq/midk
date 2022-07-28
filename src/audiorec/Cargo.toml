@@ -4,9 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-jack = "0.10"
+jack = { workspace = true}
+aarg = { workspace = true}
 hound = "3"
-
-[dependencies.aarg]
-git = "https://github.com/asrcpq/aarg"
-rev = "b48f31273c77df91adf525b1ffa174a9330b8bdd"

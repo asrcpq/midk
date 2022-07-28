@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 uinput = "0.1"
-jack = "0.10"
+jack = { workspace = true}
