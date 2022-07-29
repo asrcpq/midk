@@ -1,11 +1,11 @@
 fn main() {
 	let args = aarg::parse().unwrap();
 	let trigger = args
-		.get("trigger")
+		.get("--trigger")
 		.map(|x| x[0].parse::<f32>().unwrap())
 		.unwrap_or(-0.1);
 	let output = args
-		.get("output")
+		.get("--output")
 		.map(|x| x[0].clone())
 		.unwrap_or_else(|| "/tmp/midk_audiorec.wav".to_string());
 	let mut trigger_flag = false;

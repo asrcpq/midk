@@ -7,8 +7,14 @@ fn main() {
 		jack::Client::new("midk_fcon", jack::ClientOptions::NO_START_SERVER)
 			.unwrap();
 
-	let conf_path = std::env::var("XDG_CONFIG_HOME").unwrap();
-	let conf_path = format!("{}/midk/fcon.conf", conf_path);
+	let args = aarg::parse().unwrap();
+	let conf_path = match args.get("--config") {
+		Some(vs) => vs[0].clone(),
+		None => {
+			let conf_path = std::env::var("XDG_CONFIG_HOME").unwrap();
+			format!("{}/midk/fcon.conf", conf_path)
+		}
+	};
 	let conf = std::fs::read_to_string(conf_path).unwrap();
 	let mut key: Option<Key> = None;
 	let mut value = Vec::new();
@@ -27,8 +33,10 @@ fn main() {
 		}
 	}
 
-	let mut iter = std::env::args();
-	iter.next();
+	let mut iter = match args.get("--") {
+		Some(v) => v,
+		None => &args.get("").unwrap()[1..],
+	}.iter();
 	let mut last_port = iter.next().unwrap();
 	for next_port in iter {
 		let ins = alias_table
@@ -36,7 +44,7 @@ fn main() {
 			.unwrap_or_else(|| panic!("{} not found", last_port));
 		let outs = alias_table
 			.get(&(next_port.clone(), true))
-			.unwrap_or_else(|| panic!("{} not found", last_port));
+			.unwrap_or_else(|| panic!("{} not found", next_port));
 		if ins.len() != outs.len() {
 			std::process::exit(1);
 		}

@@ -10,6 +10,7 @@ members = [
 	"src/audiorec",
 	"src/smprec",
 	"src/midinput",
+	"src/midifilter",
 ]
 
 [workspace.dependencies]
