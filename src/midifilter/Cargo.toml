@@ -1,0 +1,8 @@
+[package]
+name = "midk_midifilter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jack = {workspace = true}
+aarg = {workspace = true}
