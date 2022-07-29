@@ -3,17 +3,17 @@ use std::sync::mpsc::channel;
 fn main() {
 	let args = aarg::parse().unwrap();
 	let output_dir = args
-		.get("output_dir")
+		.get("--output_dir")
 		.map(|x| x[0].clone())
 		.unwrap_or_else(|| "/tmp/midk_smprec".to_string());
 	let notes: Vec<u8> = args
-		.get("notes")
+		.get("--notes")
 		.unwrap()
 		.into_iter()
 		.map(|x| x.parse::<u8>().unwrap())
 		.collect();
 	let velocities: Vec<u8> = args
-		.get("velocities")
+		.get("--velocities")
 		.unwrap()
 		.into_iter()
 		.map(|x| x.parse::<u8>().unwrap())
@@ -86,7 +86,7 @@ fn main() {
 		for (&s1, &s2) in in1.iter().zip(in2.iter()) {
 			match trigger_state {
 				0 => {
-					if s1.abs() > up_trigger || s2.abs() > up_trigger {
+					if s1.abs() > down_trigger || s2.abs() > down_trigger {
 						eprintln!("start recording {} {}", note, velocity);
 						trigger_state = 1;
 					} else {
@@ -94,20 +94,21 @@ fn main() {
 					}
 				}
 				2 => {
-					if s1.abs() <= up_trigger && s2.abs() <= up_trigger {
+					if s1.abs() <= down_trigger && s2.abs() <= down_trigger {
 						trigger_counter += 1;
 						if trigger_counter > 24000 {
 							trigger_counter = 0;
 							eprintln!("state 2 finished");
 							trigger_state = 0;
 							sample_count = 0;
+							sender_flag = true;
 						}
 					} else {
 						continue;
 					}
 				}
 				_ => {
-					if s1.abs() <= down_trigger && s2.abs() <= down_trigger {
+					if s1.abs() <= up_trigger && s2.abs() <= up_trigger {
 						trigger_counter += 1;
 						if trigger_counter > 24000 {
 							trigger_counter = 0;
@@ -132,7 +133,6 @@ fn main() {
 								})
 								.unwrap();
 							trigger_state = 2;
-							sender_flag = true;
 						}
 					} else {
 						trigger_counter = 0;
