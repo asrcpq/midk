@@ -16,7 +16,11 @@ impl SynthGenerator for ExsquareGenerator {
 			* 2f32.powf((note as i32 - 57) as f32 / 12.0);
 		let cycle = 1.0 / freq;
 		let exs = Exsquare {
-			end_count: None,
+			ending_flag: false,
+			end_count: 1,
+			release: 1.0,
+			release_t: 0.1,
+
 			cycle,
 			t: 0.0,
 			dt: self.frame_t,
@@ -28,7 +32,11 @@ impl SynthGenerator for ExsquareGenerator {
 
 // provide a simple example
 struct Exsquare {
-	end_count: Option<usize>,
+	ending_flag: bool,
+	end_count: usize,
+	release: f32,
+	release_t: f32,
+
 	cycle: f32,
 	t: f32,
 	dt: f32, // per frame
@@ -37,28 +45,31 @@ struct Exsquare {
 
 impl Synth for Exsquare {
 	fn set_end(&mut self, smp_count: usize) {
-		self.end_count = Some(smp_count);
+		self.ending_flag = true;
+		self.end_count = smp_count;
 	}
 
 	fn sample(&mut self, data_l: &mut [f32], data_r: &mut [f32]) -> Option<usize> {
-		// no strict timing, stop at next sample window
-		match self.end_count.as_mut() {
-			None => {},
-			Some(0) => return Some(0),
-			Some(x) => *x = x.saturating_sub(data_l.len()),
-		}
-		for (l, r) in data_l.iter_mut().zip(data_r.iter_mut()) {
+		for (idx, (l, r)) in data_l.iter_mut().zip(data_r.iter_mut()).enumerate() {
+			if self.end_count == 0 {
+				self.release -= self.dt / self.release_t;
+				if self.release <= 0.0 {
+					return Some(idx)
+				}
+			} else if self.ending_flag {
+				self.end_count -= 1;
+			}
 			self.t += self.dt;
 			if self.t >= self.cycle {
 				self.t -= self.cycle;
 			}
-			if self.t > self.cycle / 2.0 {
-				*l += self.level;
-				*r += self.level;
+			let level = if self.t > self.cycle / 2.0 {
+				self.level
 			} else {
-				*l += -self.level;
-				*r += -self.level;
-			}
+				-self.level
+			};
+			*l += level * self.release;
+			*r += level * self.release;
 		}
 		None
 	}

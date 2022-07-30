@@ -6,6 +6,8 @@ use std::collections::HashMap;
 pub struct PolyHost {
 	generator: Box<dyn SynthGenerator>,
 	active: HashMap<u8, Box<dyn Synth>>,
+	sustain_flag: bool,
+	sustain: Vec<Box<dyn Synth>>,
 	release: Vec<Box<dyn Synth>>,
 }
 
@@ -14,6 +16,8 @@ impl PolyHost {
 		Self {
 			generator,
 			active: Default::default(),
+			sustain_flag: false,
+			sustain: Default::default(),
 			release: Default::default(),
 		}
 	}
@@ -45,16 +49,45 @@ impl PolyHost {
 							event.bytes[2] as f32 / 128.0,
 						));
 					} else if event.bytes[0] == 138 {
-						// TODO: send release event
-						self.active.remove(&event.bytes[1]);
+						// NOTE: directly overwrite or sort earliest release event?
+						if let Some(mut synth) = self.active.remove(&event.bytes[1]) {
+							if self.sustain_flag {
+								self.sustain.push(synth);
+							} else {
+								synth.set_end(event.time as usize);
+								self.release.push(synth);
+							}
+						}
+					} else if event.bytes[0] == 186 && event.bytes[1] == 64 {
+						if event.bytes[2] == 0 {
+							self.sustain_flag = false;
+							for mut synth in std::mem::take(&mut self.sustain).into_iter() {
+								synth.set_end(event.time as usize);
+								self.release.push(synth);
+							}
+						} else if event.bytes[2] == 127 {
+							self.sustain_flag = true;
+						}
 					}
 				}
 				let out1 = audio_out1.as_mut_slice(ps);
 				let out2 = audio_out2.as_mut_slice(ps);
 				for v in out1.iter_mut() { *v = 0.0 }
 				for v in out2.iter_mut() { *v = 0.0 }
-				for (_, synth) in self.active.iter_mut() {
-					synth.sample(out1, out2);
+				for (key, mut synth) in std::mem::take(&mut self.active).into_iter() {
+					if synth.sample(out1, out2).is_none() {
+						self.active.insert(key, synth);
+					}
+				}
+				for mut synth in std::mem::take(&mut self.sustain).into_iter() {
+					if synth.sample(out1, out2).is_none() {
+						self.sustain.push(synth);
+					}
+				}
+				for mut synth in std::mem::take(&mut self.release).into_iter() {
+					if synth.sample(out1, out2).is_none() {
+						self.release.push(synth);
+					}
 				}
 				jack::Control::Continue
 			};
