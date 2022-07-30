@@ -1,6 +1,6 @@
 fn main() {
 	let (client, _status) = jack::Client::new(
-		"midk_audiorec",
+		"midk_copypipe",
 		jack::ClientOptions::NO_START_SERVER,
 	)
 	.unwrap();
