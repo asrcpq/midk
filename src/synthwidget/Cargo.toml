@@ -1,0 +1,7 @@
+[package]
+name = "midk_synthwidget"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+midk_polysplit = {path = "../polysplit"}
