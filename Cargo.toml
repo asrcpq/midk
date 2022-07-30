@@ -12,6 +12,7 @@ members = [
 	"src/midinput",
 	"src/midifilter",
 	"src/copypipe",
+	"src/polysplit",
 ]
 
 [workspace.dependencies]
