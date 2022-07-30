@@ -1,42 +1,18 @@
-# components(and todo)
+# todo
 
-## simple reimplementation of buggy tools provided by jack
-
-* lsp
-
-* audiorec
-
-* mididump
-
-## other utils
-
-* fcon: fast connect with an alias config file
-
-## sampler
-
-* ksmp: simple polyphonic sample player
-
-* smprec: instrument sample autorecorder
-
-## synth
-
-* toysynth: a dummy synth example
-
-## todo
-
-### smprec
+## smprec
 
 * send timeout: resend
 
 * check recorded file(e.g. too short)
 
-### ksmp
+## ksmp
 
 * accept more filetypes
 
 * decompress caching(parameter control)
 
-### new tools
+## new tools
 
 * fdiscon
 
@@ -45,5 +21,9 @@
 * midicat
 
 * simple midi script
+
+* midiedit
+
+* audiovis
 
 * web streaming
