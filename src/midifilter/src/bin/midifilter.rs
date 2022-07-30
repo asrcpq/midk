@@ -30,6 +30,8 @@ fn main() {
 					if filters[event.bytes[1] as usize] {
 						writer.write(&event).unwrap();
 					}
+				} else {
+					writer.write(&event).unwrap();
 				}
 			}
 			jack::Control::Continue
