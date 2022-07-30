@@ -4,6 +4,10 @@ fn main() {
 		.get("--trigger")
 		.map(|x| x[0].parse::<f32>().unwrap())
 		.unwrap_or(-0.1);
+	let duration = args
+		.get("--duration")
+		.map(|x| x[0].parse::<f32>().unwrap())
+		.unwrap_or(f32::INFINITY);
 	let output = args
 		.get("--output")
 		.map(|x| x[0].clone())
@@ -22,6 +26,7 @@ fn main() {
 		.register_port("audio_in2", jack::AudioIn::default())
 		.unwrap();
 	let sample_rate = client.sample_rate();
+	let mut total_samples = 0;
 
 	let spec = hound::WavSpec {
 		channels: 2,
@@ -47,7 +52,12 @@ fn main() {
 				writer.write_sample(s1).unwrap();
 				writer.write_sample(s2).unwrap();
 			}
-			jack::Control::Continue
+			total_samples += in1.len();
+			if total_samples as f32 / sample_rate as f32 > duration {
+				jack::Control::Quit
+			} else {
+				jack::Control::Continue
+			}
 		};
 
 	let active_client = client
