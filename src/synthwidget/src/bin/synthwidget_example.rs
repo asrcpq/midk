@@ -2,7 +2,7 @@ use midk_polysplit::poly_host::PolyHost;
 use midk_polysplit::synth::Synth;
 use midk_polysplit::synth_generator::SynthGenerator;
 
-use midk_synthwidget::osc::{Segs, SegsPredefined};
+use midk_synthwidget::seg::{Seg, SegPredefined};
 
 #[derive(Default)]
 pub struct SwGenerator {
@@ -15,14 +15,21 @@ impl SynthGenerator for SwGenerator {
 	}
 
 	fn generate(&self, note: u8, velocity: f32) -> Box<dyn Synth> {
-		let freq = 440.0
-			* 2f32.powf((note as i32 - 57) as f32 / 12.0);
+		let freq = 440.0 * 2f32.powf((note as i32 - 57) as f32 / 12.0);
+		let frame_k = freq * self.frame_t;
 		let sws = SwSynth {
-			segs: Segs::new_predefined(
-				//SegsPredefined::Sine8Points,
-				SegsPredefined::Pulse(0.3),
-				//SegsPredefined::Saw,
-				freq * self.frame_t,
+			osc: Seg::new_predefined(
+				SegPredefined::Sine8Points,
+				//SegPredefined::Pulse(0.3),
+				//SegPredefined::Saw,
+				frame_k,
+			),
+			amp: Seg::new(
+				vec![
+					(0., 1.0),
+					(0.67, 0.25),
+				],
+				self.frame_t,
 			),
 			ending_flag: false,
 			level: velocity / 5.0,
@@ -34,7 +41,8 @@ impl SynthGenerator for SwGenerator {
 
 // provide a simple example
 struct SwSynth {
-	segs: Segs,
+	osc: Seg,
+	amp: Seg,
 	ending_flag: bool,
 	level: f32,
 	buffer: Vec<f32>,
@@ -50,7 +58,8 @@ impl Synth for SwSynth {
 		if self.ending_flag {
 			return Some(0)
 		}
-		self.segs.write(&mut self.buffer);
+		self.osc.write(&mut self.buffer, |x, y| {*x = y});
+		self.amp.write(&mut self.buffer, |x, y| {*x *= y});
 		for (s, v) in data_l.iter_mut().zip(self.buffer.iter()) {
 			*s += self.level * v;
 		}
