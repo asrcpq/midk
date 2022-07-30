@@ -16,13 +16,13 @@ impl SynthGenerator for SwGenerator {
 
 	fn generate(&self, note: u8, velocity: f32) -> Box<dyn Synth> {
 		let freq = 440.0 * 2f32.powf((note as i32 - 57) as f32 / 12.0);
-		let frame_k = freq * self.frame_t;
+		let speed = freq * self.frame_t;
 		let sws = SwSynth {
 			osc: Seg::new_predefined(
 				SegPredefined::Sine8Points,
 				//SegPredefined::Pulse(0.3),
 				//SegPredefined::Saw,
-				frame_k,
+				speed,
 			),
 			amp: Seg::new(
 				vec![
@@ -31,9 +31,10 @@ impl SynthGenerator for SwGenerator {
 				],
 				self.frame_t,
 			),
-			ending_flag: false,
+			release: None,
 			level: velocity / 5.0,
 			buffer: Vec::new(),
+			frame_t: self.frame_t,
 		};
 		Box::new(sws)
 	}
@@ -43,23 +44,33 @@ impl SynthGenerator for SwGenerator {
 struct SwSynth {
 	osc: Seg,
 	amp: Seg,
-	ending_flag: bool,
+	release: Option<Seg>,
 	level: f32,
 	buffer: Vec<f32>,
+	frame_t: f32,
 }
 
 impl Synth for SwSynth {
 	fn set_end(&mut self, _smp_count: usize) {
-		self.ending_flag = true;
+		// TODO: precise timing
+		self.release = Some(Seg::new(
+			vec![
+				(0., 1.),
+				(0.5, 0.),
+			],
+			self.frame_t,
+		))
 	}
 
 	fn sample(&mut self, data_l: &mut [f32], data_r: &mut [f32]) -> Option<usize> {
 		self.buffer.resize(data_l.len(), 0.0);
-		if self.ending_flag {
-			return Some(0)
-		}
 		self.osc.write(&mut self.buffer, |x, y| {*x = y});
 		self.amp.write(&mut self.buffer, |x, y| {*x *= y});
+		if let Some(rel) =self.release.as_mut() {
+			if let Some(t) = rel.write(&mut self.buffer, |x, y| {*x *= y}) {
+				return Some(t);
+			}
+		}
 		for (s, v) in data_l.iter_mut().zip(self.buffer.iter()) {
 			*s += self.level * v;
 		}
