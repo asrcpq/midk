@@ -11,6 +11,7 @@ members = [
 	"src/smprec",
 	"src/midinput",
 	"src/midifilter",
+	"src/copypipe",
 ]
 
 [workspace.dependencies]
