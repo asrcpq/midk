@@ -1,9 +1,10 @@
 pub struct Seg {
 	points: Vec<(f32, f32)>,
 	time: f32,
-	loop_point: f32,
+	end_point: f32,
+	loop_cd: i32, // loop count down, -1 means infinite
 	idx: usize,
-	frame_k: f32, // freq * frame_t
+	speed: f32, // freq * frame_t
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -15,17 +16,18 @@ pub enum SegPredefined {
 }
 
 impl Seg {
-	pub fn new(points: Vec<(f32, f32)>, frame_k: f32) -> Self {
+	pub fn new(points: Vec<(f32, f32)>, speed: f32) -> Self {
 		Self {
 			points,
 			time: 0.,
-			loop_point: f32::INFINITY,
+			end_point: f32::INFINITY,
+			loop_cd: 1,
 			idx: 0,
-			frame_k,
+			speed,
 		}
 	}
 
-	pub fn new_predefined(p: SegPredefined, frame_k: f32) -> Self {
+	pub fn new_predefined(p: SegPredefined, speed: f32) -> Self {
 		use SegPredefined::*;
 		let points = match p {
 			Sine8Points => vec![
@@ -59,16 +61,19 @@ impl Seg {
 		Self {
 			points,
 			time: 0.,
-			loop_point: 1.0,
+			end_point: 1.0,
+			loop_cd: -1,
 			idx: 0,
-			frame_k,
+			speed,
 		}
 	}
 
-	pub fn write<F>(&mut self, buffer: &mut [f32], f: F)
+	// return ending point for non-loop
+	pub fn write<F>(&mut self, buffer: &mut [f32], f: F) -> Option<usize>
 		where F: Fn(&mut f32, f32)
 	{
-		for s in buffer.iter_mut() {
+		if self.loop_cd == 0 { return Some(0) }
+		for (idx, s) in buffer.iter_mut().enumerate() {
 			let mut next_idx;
 			loop {
 				next_idx = self.idx + 1;
@@ -88,11 +93,14 @@ impl Seg {
 				}
 				self.idx = next_idx;
 			}
-			self.time += self.frame_k;
-			if self.time >= self.loop_point {
+			self.time += self.speed;
+			if self.time >= self.end_point {
+				self.loop_cd -= 1;
+				if self.loop_cd == 0 { return Some(idx) }
 				self.idx = 0;
-				self.time -= self.loop_point;
+				self.time -= self.end_point;
 			}
 		}
+		None
 	}
 }
