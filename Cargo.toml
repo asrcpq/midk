@@ -13,6 +13,7 @@ members = [
 	"src/midifilter",
 	"src/copypipe",
 	"src/polysplit",
+	"src/synthwidget",
 ]
 
 [workspace.dependencies]
