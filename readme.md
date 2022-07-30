@@ -28,8 +28,6 @@
 
 * send timeout: resend
 
-* sleep between keys
-
 * check recorded file(e.g. too short)
 
 ### ksmp
