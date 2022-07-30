@@ -18,16 +18,32 @@ impl SynthGenerator for SwGenerator {
 		let freq = 440.0 * 2f32.powf((note as i32 - 57) as f32 / 12.0);
 		let speed = freq * self.frame_t;
 		let sws = SwSynth {
-			osc: Seg::new_predefined(
-				SegPredefined::Sine8Points,
+			osc1: Seg::new_predefined(
+				//SegPredefined::Sine8Points,
 				//SegPredefined::Pulse(0.3),
-				//SegPredefined::Saw,
+				SegPredefined::Saw,
 				speed,
 			),
+			osc2: Seg::new(
+				vec![
+					(0., 1.),
+					(0.15, 1.),
+					(0.15, 0.),
+					(0.4719, 0.),
+					(0.4719, 1.),
+					(0.6219, 1.),
+					(0.6219, 0.),
+					(0.9439, 0.),
+					(0.9439, 1.),
+					(1., 1.),
+				],
+				speed,
+			).set_loop(1.0, -1),
 			amp: Seg::new(
 				vec![
 					(0., 1.0),
-					(0.67, 0.25),
+					(0.3, 0.25),
+					(3., 0.),
 				],
 				self.frame_t,
 			),
@@ -42,7 +58,8 @@ impl SynthGenerator for SwGenerator {
 
 // provide a simple example
 struct SwSynth {
-	osc: Seg,
+	osc1: Seg,
+	osc2: Seg,
 	amp: Seg,
 	release: Option<Seg>,
 	level: f32,
@@ -64,7 +81,8 @@ impl Synth for SwSynth {
 
 	fn sample(&mut self, data_l: &mut [f32], data_r: &mut [f32]) -> Option<usize> {
 		self.buffer.resize(data_l.len(), 0.0);
-		self.osc.write(&mut self.buffer, |x, y| {*x = y});
+		self.osc1.write(&mut self.buffer, |x, y| {*x = 0.75 * y});
+		self.osc2.write(&mut self.buffer, |x, y| {*x += y});
 		self.amp.write(&mut self.buffer, |x, y| {*x *= y});
 		if let Some(rel) =self.release.as_mut() {
 			if let Some(t) = rel.write(&mut self.buffer, |x, y| {*x *= y}) {

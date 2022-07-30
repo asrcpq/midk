@@ -27,6 +27,12 @@ impl Seg {
 		}
 	}
 
+	pub fn set_loop(mut self, end_point: f32, loop_cd: i32) -> Self {
+		self.end_point = end_point;
+		self.loop_cd = loop_cd;
+		self
+	}
+
 	pub fn new_predefined(p: SegPredefined, speed: f32) -> Self {
 		use SegPredefined::*;
 		let points = match p {
