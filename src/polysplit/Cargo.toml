@@ -1,0 +1,7 @@
+[package]
+name = "midk_polysplit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jack = {workspace = true}
