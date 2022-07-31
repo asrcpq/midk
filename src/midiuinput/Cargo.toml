@@ -1,5 +1,5 @@
 [package]
-name = "midinput"
+name = "midk_midiuinput"
 version = "0.1.0"
 edition = "2021"
 
