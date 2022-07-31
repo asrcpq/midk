@@ -1,5 +1,3 @@
-use std::sync::mpsc::channel;
-
 use ksmp::polyman::Polyman;
 use ksmp::sample_db::SampleDb;
 
@@ -24,7 +22,6 @@ fn main() {
 		.unwrap();
 	let sample_db = SampleDb::load_config(&config);
 	let mut polyman = Polyman::new(sample_db);
-	let (tx, rx) = channel();
 
 	let callback = move |_: &jack::Client,
 	                     ps: &jack::ProcessScope|
@@ -62,42 +59,15 @@ fn main() {
 			let [ss1, ss2] = polyman.get_sample();
 			*s1 = ss1;
 			*s2 = ss2;
-			tx.send((polyman.active_keys(), ss1, ss2)).unwrap();
 			polyman.step();
 		}
 		jack::Control::Continue
 	};
 
-	let _active_client = client
+	let active_client = client
 		.activate_async((), jack::ClosureProcessHandler::new(callback))
 		.unwrap();
 
-	// signal stat
-	let mut msg_counter = 0u32;
-	let mut rms = 0f32;
-	let mut peak = 0f32;
-	const W: u32 = 100_000;
-	loop {
-		let (len, s1, s2) = rx.recv().unwrap();
-		if msg_counter > W {
-			eprintln!(
-				"Active keys: {}, signal peak {}, avg {}",
-				len,
-				peak,
-				(rms / W as f32 / 2f32).sqrt(),
-			);
-			rms = 0f32;
-			peak = 0f32;
-			msg_counter = 0;
-		}
-		rms += s1.powi(2) + s2.powi(2);
-		if s1.abs() > peak {
-			peak = s1.abs();
-		}
-		if s2.abs() > peak {
-			peak = s2.abs();
-		}
-		msg_counter += 1;
-	}
-	// active_client.deactivate().unwrap();
+	std::thread::park();
+	active_client.deactivate().unwrap();
 }

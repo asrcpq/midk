@@ -9,7 +9,7 @@ members = [
 	"src/ksmp",
 	"src/audiorec",
 	"src/smprec",
-	"src/midinput",
+	"src/midiuinput",
 	"src/midifilter",
 	"src/copypipe",
 	"src/polysplit",
