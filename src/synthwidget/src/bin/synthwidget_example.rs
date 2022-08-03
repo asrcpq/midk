@@ -3,6 +3,7 @@ use midk_polysplit::synth::Synth;
 use midk_polysplit::synth_generator::SynthGenerator;
 
 use midk_synthwidget::seg::{Seg, SegPredefined};
+use midk_synthwidget::filter::SimpleIir;
 
 #[derive(Default)]
 pub struct SwGenerator {
@@ -47,6 +48,7 @@ impl SynthGenerator for SwGenerator {
 				],
 				self.frame_t,
 			),
+			iir: SimpleIir::new(0.1),
 			release: None,
 			level: velocity / 5.0,
 			buffer: Vec::new(),
@@ -61,6 +63,7 @@ struct SwSynth {
 	osc1: Seg,
 	osc2: Seg,
 	amp: Seg,
+	iir: SimpleIir,
 	release: Option<Seg>,
 	level: f32,
 	buffer: Vec<f32>,
@@ -84,6 +87,7 @@ impl Synth for SwSynth {
 		self.osc1.write(&mut self.buffer, |x, y| {*x = 0.75 * y});
 		self.osc2.write(&mut self.buffer, |x, y| {*x += y});
 		self.amp.write(&mut self.buffer, |x, y| {*x *= y});
+		self.iir.write(&mut self.buffer, |x, y| {*x = y});
 		if let Some(rel) =self.release.as_mut() {
 			if let Some(t) = rel.write(&mut self.buffer, |x, y| {*x *= y}) {
 				return Some(t);

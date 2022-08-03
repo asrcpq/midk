@@ -4,6 +4,7 @@ use crate::synth::Synth;
 use std::collections::HashMap;
 
 pub struct PolyHost {
+	// TODO: synth generator generate() cost too much(many components to build)
 	generator: Box<dyn SynthGenerator>,
 	active: HashMap<u8, Box<dyn Synth>>,
 	sustain_flag: bool,
