@@ -1,24 +1,8 @@
-# todo
-
-## smprec
-
-* send timeout: resend
-
-* check recorded file(e.g. too short)
-
-## ksmp
-
-* accept more filetypes
-
-* decompress caching(parameter control)
-
-## new tools
+## to implement
 
 * fdiscon
 
 * automidirec
-
-* midicat
 
 * simple midi script
 
