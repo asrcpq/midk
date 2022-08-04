@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub struct PolyHost {
 	// TODO: synth generator generate() cost too much(many components to build)
 	generator: Box<dyn SynthGenerator>,
+	idle: Vec<Box<dyn Synth>>,
 	active: HashMap<u8, Box<dyn Synth>>,
 	sustain_flag: bool,
 	sustain: Vec<Box<dyn Synth>>,
@@ -16,6 +17,7 @@ impl PolyHost {
 	pub fn new(generator: Box<dyn SynthGenerator>) -> Self {
 		Self {
 			generator,
+			idle: Default::default(),
 			active: Default::default(),
 			sustain_flag: false,
 			sustain: Default::default(),
@@ -45,10 +47,18 @@ impl PolyHost {
 			move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
 				for event in midi_in.iter(ps) {
 					if event.bytes[0] == 154 {
-						self.active.insert(event.bytes[1], self.generator.generate(
-							event.bytes[1],
+						let mut synth = match self.idle.pop() {
+							Some(s) => s,
+							None => self.generator.generate(),
+						};
+						synth.note(
+							440.0 * 2f32.powf((event.bytes[1] as i32 - 57) as f32 / 12.0),
 							event.bytes[2] as f32 / 128.0,
-						));
+						);
+						if let Some(synth) = self.active.insert(event.bytes[1], synth) {
+							eprintln!("ERROR, missing keyup event {:?}", event.bytes[1]);
+							self.idle.push(synth);
+						}
 					} else if event.bytes[0] == 138 {
 						// NOTE: directly overwrite or sort earliest release event?
 						if let Some(mut synth) = self.active.remove(&event.bytes[1]) {
@@ -76,18 +86,24 @@ impl PolyHost {
 				for v in out1.iter_mut() { *v = 0.0 }
 				for v in out2.iter_mut() { *v = 0.0 }
 				for (key, mut synth) in std::mem::take(&mut self.active).into_iter() {
-					if synth.sample(out1, out2).is_none() {
+					if !synth.sample(out1, out2) {
 						self.active.insert(key, synth);
+					} else {
+						self.idle.push(synth);
 					}
 				}
 				for mut synth in std::mem::take(&mut self.sustain).into_iter() {
-					if synth.sample(out1, out2).is_none() {
+					if !synth.sample(out1, out2) {
 						self.sustain.push(synth);
+					} else {
+						self.idle.push(synth);
 					}
 				}
 				for mut synth in std::mem::take(&mut self.release).into_iter() {
-					if synth.sample(out1, out2).is_none() {
+					if !synth.sample(out1, out2) {
 						self.release.push(synth);
+					} else {
+						self.idle.push(synth);
 					}
 				}
 				jack::Control::Continue

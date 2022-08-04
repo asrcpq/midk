@@ -11,6 +11,10 @@ impl SimpleIir {
 		}
 	}
 
+	pub fn reset(&mut self) {
+		self.prev = 0.;
+	}
+
 	// F is blending function
 	pub fn write<F>(&mut self, buffer: &mut [f32], f_blend: F)
 		where F: Fn(&mut f32, f32)

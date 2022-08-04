@@ -2,7 +2,8 @@ pub struct Seg {
 	points: Vec<(f32, f32)>,
 	time: f32,
 	end_point: f32,
-	loop_cd: i32, // loop count down, -1 means infinite
+	loop_total: i32, // -1 is inf
+	loop_cd: i32,
 	idx: usize,
 	speed: f32, // freq * frame_t
 }
@@ -16,24 +17,48 @@ pub enum SegPredefined {
 }
 
 impl Seg {
-	pub fn new(points: Vec<(f32, f32)>, speed: f32) -> Self {
+	pub fn new(points: Vec<(f32, f32)>) -> Self {
 		Self {
 			points,
 			time: 0.,
 			end_point: f32::INFINITY,
+			loop_total: 1,
+			loop_cd: 1,
+			idx: 0,
+			speed: 0.,
+		}
+	}
+
+	pub fn new_speed(points: Vec<(f32, f32)>, speed: f32) -> Self {
+		Self {
+			points,
+			time: 0.,
+			end_point: f32::INFINITY,
+			loop_total: 1,
 			loop_cd: 1,
 			idx: 0,
 			speed,
 		}
 	}
 
-	pub fn set_loop(mut self, end_point: f32, loop_cd: i32) -> Self {
+	pub fn with_loop(mut self, end_point: f32, loop_total: i32) -> Self {
 		self.end_point = end_point;
-		self.loop_cd = loop_cd;
+		self.loop_total = loop_total;
+		self.loop_cd = loop_total;
 		self
 	}
 
-	pub fn new_predefined(p: SegPredefined, speed: f32) -> Self {
+	pub fn set_speed(&mut self, speed: f32) {
+		self.speed = speed;
+	}
+
+	pub fn reset(&mut self) {
+		self.loop_cd = self.loop_total;
+		self.time = 0.;
+		self.idx = 0;
+	}
+
+	pub fn new_predefined(p: SegPredefined) -> Self {
 		use SegPredefined::*;
 		let points = match p {
 			Sine8Points => vec![
@@ -68,9 +93,10 @@ impl Seg {
 			points,
 			time: 0.,
 			end_point: 1.0,
+			loop_total: -1,
 			loop_cd: -1,
 			idx: 0,
-			speed,
+			speed: 0.,
 		}
 	}
 
