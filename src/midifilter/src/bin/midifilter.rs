@@ -1,14 +1,23 @@
 fn main() {
 	let args = aarg::parse().unwrap();
-	let mut filters = [false; 128];
-	for x in args
-		.get("--whitelist")
-		.unwrap()
-		.iter()
-	{
-		let b = x.parse::<usize>().unwrap();
-		filters[b] = true;
-	}
+	let filters = if let Some(whitelist) = args.get("--whitelist") {
+		let mut filters = [false; 128];
+		for x in whitelist.iter() {
+			let b = x.parse::<usize>().unwrap();
+			filters[b] = true;
+		}
+		filters
+	} else if let Some(blacklist) = args.get("--blacklist") {
+		let mut filters = [true; 128];
+		for x in blacklist.iter() {
+			let b = x.parse::<usize>().unwrap();
+			filters[b] = false;
+		}
+		filters
+	} else {
+		// all pass
+		[true; 128]
+	};
 	let (client, _status) = jack::Client::new(
 		"midk_midifilter",
 		jack::ClientOptions::NO_START_SERVER,
@@ -18,20 +27,27 @@ fn main() {
 	let midi_in = client
 		.register_port("midi_in", jack::MidiIn::default())
 		.unwrap();
-	let mut midi_out = client
-		.register_port("midi_out", jack::MidiOut::default())
+	let mut midi_out1 = client
+		.register_port("midi_out1", jack::MidiOut::default())
+		.unwrap();
+	let mut midi_out2 = client
+		.register_port("midi_out2", jack::MidiOut::default())
 		.unwrap();
 
 	let callback =
 		move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
-			let mut writer = midi_out.writer(ps);
+			let mut writer1 = midi_out1.writer(ps);
+			let mut writer2 = midi_out2.writer(ps);
 			for event in midi_in.iter(ps) {
 				if event.bytes[0] == 154 || event.bytes[0] == 138 {
 					if filters[event.bytes[1] as usize] {
-						writer.write(&event).unwrap();
+						writer1.write(&event).unwrap();
+					} else {
+						writer2.write(&event).unwrap();
 					}
 				} else {
-					writer.write(&event).unwrap();
+					writer1.write(&event).unwrap();
+					writer2.write(&event).unwrap();
 				}
 			}
 			jack::Control::Continue
