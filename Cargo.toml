@@ -14,6 +14,7 @@ members = [
 	"src/copypipe",
 	"src/polysplit",
 	"src/synthwidget",
+	"src/usm",
 ]
 
 [workspace.dependencies]
