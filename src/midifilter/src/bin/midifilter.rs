@@ -39,7 +39,7 @@ fn main() {
 			let mut writer1 = midi_out1.writer(ps);
 			let mut writer2 = midi_out2.writer(ps);
 			for event in midi_in.iter(ps) {
-				if event.bytes[0] == 154 || event.bytes[0] == 138 {
+				if (128..160).contains(&event.bytes[0]) {
 					if filters[event.bytes[1] as usize] {
 						writer1.write(&event).unwrap();
 					} else {
