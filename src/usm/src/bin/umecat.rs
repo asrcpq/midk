@@ -1,5 +1,6 @@
 use jack::RawMidi as Rm;
 use std::io::BufRead;
+use std::sync::mpsc::channel;
 
 use midk_usm::document::UmeDocument;
 use midk_usm::content::UmeContent as Uc;
@@ -29,6 +30,7 @@ fn main() {
 		UmeDocument::from_bytes(&data)
 	};
 	eprintln!("{} events", doc.events.len());
+	let (tx, rx) = channel();
 	let mut iter = doc.events.into_iter().enumerate().peekable();
 	let (client, _status) = jack::Client::new(
 		"midk_umecat",
@@ -48,6 +50,7 @@ fn main() {
 			while let Some((idx, event)) = iter.peek() {
 				let f = align.get_frame(event.dt);
 				if f >= bs {
+					eprint!("{}\r", f * 10 / sr as u32);
 					break
 				}
 				eprintln!("proc event {} {:?}", idx, event);
@@ -75,6 +78,10 @@ fn main() {
 				align.go_timer(event.dt);
 				iter.next();
 			}
+			if iter.peek().is_none() {
+				tx.send(()).unwrap();
+				return jack::Control::Quit
+			}
 			align.go_frame(bs);
 			jack::Control::Continue
 		};
@@ -82,6 +89,6 @@ fn main() {
 	let active_client = client
 		.activate_async((), jack::ClosureProcessHandler::new(callback))
 		.unwrap();
-	std::thread::park();
+	let _ = rx.recv();
 	active_client.deactivate().unwrap();
 }
