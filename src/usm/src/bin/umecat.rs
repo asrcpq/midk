@@ -44,13 +44,18 @@ fn main() {
 		.unwrap();
 	let stdin = std::io::stdin();
 	let _ = stdin.lock().lines().next().unwrap();
+	let mut cd = 0;
 	let callback =
 		move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
 			let mut writer = midi_out.writer(ps);
 			while let Some((idx, event)) = iter.peek() {
 				let f = align.get_frame(event.dt);
 				if f >= bs {
-					eprint!("{}\r", f * 10 / sr as u32);
+					let new_cd = f / sr as u32;
+					if new_cd != cd {
+						eprint!("[2KWait: {}s\r", new_cd + 1);
+						cd = new_cd;
+					}
 					break
 				}
 				eprintln!("proc event {} {:?}", idx, event);

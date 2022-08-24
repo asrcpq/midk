@@ -17,7 +17,10 @@ impl Align {
 
 	// timer won't go
 	fn get_abs_frame(&self, dt: u32) -> u32 {
-		let f = ((self.t + dt) as u64 * self.sr as u64 / 1_000_000) as u32;
+		let f = ((
+				(self.t + dt) as u64 * self.sr as u64
+				+ 500_000
+			) / 1_000_000) as u32;
 		if f < self.f {
 			eprintln!("ERROR, frame exceeds time, should never happen");
 			self.f
