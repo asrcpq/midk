@@ -8,7 +8,7 @@ fn main() {
 	};
 	let data = std::fs::read(path).unwrap();
 	let doc = UmeDocument::from_smf(&data);
-	eprintln!("events: {}", data.len());
+	eprintln!("events: {}", doc.events.len());
 	let data = doc.to_bytes();
 	eprintln!("bytes: {}", data.len());
 	std::fs::write("/tmp/tmp.ume", &data).unwrap();
