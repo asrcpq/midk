@@ -1,0 +1,9 @@
+[package]
+name = "midk_toycmp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aarg = {workspace = true}
+jack = {workspace = true}
+itertools = "0.10"
