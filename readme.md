@@ -2,8 +2,6 @@
 
 * param control
 
-* fdiscon
-
 * automidirec
 
 * simple midi script
