@@ -15,6 +15,7 @@ fn main() {
 			format!("{}/midk/fcon.conf", conf_path)
 		}
 	};
+	let disconnect = args.get("--disconnect").is_some();
 	let conf = std::fs::read_to_string(conf_path).unwrap();
 	let mut key: Option<Key> = None;
 	let mut value = Vec::new();
@@ -49,10 +50,18 @@ fn main() {
 			std::process::exit(1);
 		}
 		for (cin, cout) in ins.iter().zip(outs.iter()) {
-			match client.connect_ports_by_name(cin, cout) {
+			let result = if disconnect {
+				client.disconnect_ports_by_name(cin, cout)
+			} else {
+				client.connect_ports_by_name(cin, cout)
+			};
+			match result {
 				Ok(_) => eprintln!("Ok {} -> {}", cin, cout),
 				Err(jack::Error::PortAlreadyConnected(a, b)) => {
-					eprintln!("Connected {} -> {}", a, b);
+					eprintln!("Exist {} -> {}", a, b);
+				}
+				Err(jack::Error::PortDisconnectionError) => {
+					eprintln!("Nonexist {} -> {}", cin, cout);
 				}
 				Err(e) => panic!("{}", e),
 			}

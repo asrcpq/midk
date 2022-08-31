@@ -3,19 +3,24 @@ fn main() {
 	let trigger = args
 		.get("--trigger")
 		.map(|x| x[0].parse::<f32>().unwrap())
-		.unwrap_or(0.3);
+		.unwrap_or(0.1);
 	let ratio = args
 		.get("--ratio")
 		.map(|x| x[0].parse::<f32>().unwrap())
-		.unwrap_or(0.3);
+		.unwrap_or(0.2);
 	let gain = args
 		.get("--gain")
 		.map(|x| x[0].parse::<f32>().unwrap())
-		.unwrap_or(2.0);
+		.unwrap_or(5.0);
 	let release = args
 		.get("--release")
 		.map(|x| x[0].parse::<f32>().unwrap())
-		.unwrap_or(1.0);
+		.unwrap_or(0.2);
+	let rate = args
+		.get("--rate")
+		.map(|x| x[0].parse::<f32>().unwrap())
+		.unwrap_or(0.01);
+	let mut wet = 0.0;
 	let (client, _status) = jack::Client::new(
 		"midk_toycmp",
 		jack::ClientOptions::NO_START_SERVER,
@@ -37,6 +42,7 @@ fn main() {
 	let sample_rate = client.sample_rate();
 	let buffer_size = client.buffer_size();
 	let release = (release * sample_rate as f32) as i32;
+	let wet_change_per_sample = 1.0 / rate / sample_rate as f32;
 	let mut samples: i32 = -1;
 
 	let callback =
@@ -52,18 +58,24 @@ fn main() {
 					samples = 0;
 				}
 				if samples < 0 {
-					*o1 = i1;
-					*o2 = i2;
+					wet -= wet_change_per_sample;
+					wet = wet.max(0.); 
 				} else {
-					*o1 = trigger + (i1 - trigger) * ratio;
-					*o2 = trigger + (i2 - trigger) * ratio;
+					wet += wet_change_per_sample;
+					wet = wet.min(1.); 
 				}
-				*o1 *= gain;
-				*o2 *= gain;
+				let o1_dry = i1;
+				let o2_dry = i2;
+				let o1_wet = trigger + (i1 - trigger) * ratio;
+				let o2_wet = trigger + (i2 - trigger) * ratio;
+				*o1 = gain * (o1_wet * wet + o1_dry * (1.0 - wet));
+				*o2 = gain * (o2_wet * wet + o2_dry * (1.0 - wet));
 			}
-			samples += buffer_size as i32;
-			if samples > release {
-				samples = -1;
+			if samples >= 0 {
+				samples += buffer_size as i32;
+				if samples > release {
+					samples = -1;
+				}
 			}
 			jack::Control::Continue
 		};
