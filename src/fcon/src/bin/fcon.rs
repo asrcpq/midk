@@ -34,10 +34,7 @@ fn main() {
 		}
 	}
 
-	let mut iter = match args.get("--") {
-		Some(v) => v,
-		None => &args.get("").unwrap()[1..],
-	}.iter();
+	let mut iter = args.get("").unwrap()[1..].iter();
 	let mut last_port = iter.next().unwrap();
 	for next_port in iter {
 		let ins = alias_table
