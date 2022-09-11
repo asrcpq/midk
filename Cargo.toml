@@ -20,5 +20,5 @@ members = [
 [workspace.dependencies]
 jack = "0.10"
 
-[workspace.dependencies]
+[workspace.dependencies.aarg]
 git = "https://github.com/asrcpq/aarg"
