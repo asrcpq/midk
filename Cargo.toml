@@ -21,4 +21,4 @@ members = [
 jack = "0.10"
 
 [workspace.dependencies.aarg]
-git = "http://localhost:8080/git/3c7f74b3a07eb4904b2bf9118ca6662c36d5bf97.git"
+git = "http://localhost:8080/git/asrcpq/aarg.git"
