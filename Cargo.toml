@@ -19,6 +19,4 @@ members = [
 
 [workspace.dependencies]
 jack = "0.10"
-
-[workspace.dependencies.aarg]
-git = "http://localhost:8080/git/asrcpq/aarg.git"
+aarg = {path = "../aarg"}
