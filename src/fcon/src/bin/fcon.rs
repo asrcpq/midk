@@ -11,8 +11,8 @@ fn main() {
 	let conf_path = match args.get("--config") {
 		Some(vs) => vs[0].clone(),
 		None => {
-			let conf_path = std::env::var("XDG_CONFIG_HOME").unwrap();
-			format!("{}/midk/fcon.conf", conf_path)
+			let conf_path = std::env::var("HPM_ROOT").unwrap();
+			format!("{}/asrcpq/midk/fcon.conf", conf_path)
 		}
 	};
 	let disconnect = args.get("--disconnect").is_some();
