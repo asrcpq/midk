@@ -11,7 +11,7 @@ fn main() {
 	let conf_path = match args.get("--config") {
 		Some(vs) => vs[0].clone(),
 		None => {
-			let conf_path = std::env::var("HPM_ROOT").unwrap();
+			let conf_path = std::env::var("XDG_SRC_HOME").unwrap();
 			format!("{}/asrcpq/midk/fcon.conf", conf_path)
 		}
 	};
